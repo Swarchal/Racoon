@@ -7,17 +7,17 @@ import std/[sequtils, sugar, strutils, tables]
 
 
 type
-    Row = OrderedTable[string, string]
+    Row* = OrderedTable[string, string]
 
-    Header = seq[string]
+    Header* = seq[string]
 
-    Column = object
-        name: string
-        data: seq[string]
+    Column* = object
+        name*: string
+        data*: seq[string]
 
     DataFrame* = object
-        header: Header
-        data: seq[Row]
+        header*: Header
+        data*: seq[Row]
 
 
 
@@ -177,22 +177,22 @@ when isMainModule:
     # testing
     let testStr = readFile("../example_data/example.csv")
     var df = testStr.toDataFrame(sep=",")
-    echo df
-    let
-        newcol = Column(name: "new_column", data: @["1", "2", "3"])
-        newcol2 = Column(name: "new_column_2", data: @["a", "b", "c"])
-    let df2 = df.addColumn(@[newcol, newcol2])
+    echo df.selectRow(2)
+    #let
+    #    newcol = Column(name: "new_column", data: @["1", "2", "3"])
+    #    newcol2 = Column(name: "new_column_2", data: @["a", "b", "c"])
+    #let df2 = df.addColumn(@[newcol, newcol2])
 
-    echo df2.selectRow(@[0, 2])
+    #echo df2.selectRow(@[0, 2])
 
-    let wanted_cols = @["second_name", "favourite_food"]
-    echo df2[wanted_cols]
+    #let wanted_cols = @["second_name", "favourite_food"]
+    #echo df2[wanted_cols]
 
-    echo ""
-    echo df2["favourite_food"]
+    #echo ""
+    #echo df2["favourite_food"][0]
 
 
-    let df_iris = readFile("../example_data/iris.csv").toDataFrame()
-    echo "\n"
-    echo df_iris
+    #let df_iris = readFile("../example_data/iris.csv").toDataFrame()
+    #echo "\n"
+    #echo df_iris
 
