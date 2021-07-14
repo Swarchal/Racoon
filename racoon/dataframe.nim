@@ -26,7 +26,7 @@ func shape*(df: DataFrame): array[2, int] =
     return [len(df.data), len(df.header)]
 
 
-proc toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRows=0): DataFrame =
+func toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRows=0): DataFrame =
     # parse delimited string to DataFrame object
     # TODO: schema
     #       Table/Tuple
@@ -47,11 +47,10 @@ proc toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRo
     )
 
 
-proc toDataFrame(cols: seq[Column]): DataFrame =
+func toDataFrame(cols: seq[Column]): DataFrame =
     # sequence of columns to dataframe
     let
         colnames = collect(newSeq): (for i in cols: i.name)
-        coldata = collect(newSeq): (for i in cols: i.data)
         n_rows = cols[0].data.high
     var
         row: seq[string]
@@ -116,12 +115,12 @@ func selectColumn*(df: DataFrame, colname: string): Column =
     return Column(name: colname, data: vals)
 
 
-proc `[]`*(df: DataFrame, colname: string): Column =
+func `[]`*(df: DataFrame, colname: string): Column =
     # select single column from dataframe
     return df.selectColumn(colname)
 
 
-proc `[]`*(df: DataFrame, colnames: seq[string]): DataFrame =
+func `[]`*(df: DataFrame, colnames: seq[string]): DataFrame =
     # subset dataframe on multiple column names
     var columns: seq[Column]
     for colname in colnames:
@@ -129,12 +128,12 @@ proc `[]`*(df: DataFrame, colnames: seq[string]): DataFrame =
     return columns.toDataFrame()
 
 
-proc `[]`*(col: Column, index: int): string =
+func `[]`*(col: Column, index: int): string =
     # subset value from column via single row index
     return col.data[index]
 
 
-proc `[]`*(col: Column, indices: seq[int]): Column =
+func `[]`*(col: Column, indices: seq[int]): Column =
     # subset values from single column via multiple row indices
     var vals: seq[string]
     for i in indices:
@@ -165,7 +164,7 @@ proc echo*(df: DataFrame) =
     echo "\nshape = " & $df.shape
 
 
-proc echo(col: Column) =
+proc echo*(col: Column) =
     echo col.name
     echo repeat("-", len(col.name))
     for i in col.data:
