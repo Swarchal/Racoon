@@ -26,15 +26,15 @@ func shape*(df: DataFrame): array[2, int] =
     return [len(df.data), len(df.header)]
 
 
-proc toDataFrame*(csv: string, sep=",", linesep="\n"): DataFrame =
+proc toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRows=0): DataFrame =
     # parse delimited string to DataFrame object
     # TODO: schema
     #       Table/Tuple
     var
-        header = csv.split(linesep)[0].split(sep)
+        header = csv.split(linesep)[skipStartRows].split(sep)
         rows = csv.split(linesep)
         data: seq[Row]
-    for row in rows[1..rows.high]:
+    for row in rows[skipStartRows+1..rows.high]:
         if len(row) > 0:
             var zipped = zip(header, row.split(sep))
             var row_t: OrderedTable[string, string]
@@ -175,9 +175,9 @@ proc echo(col: Column) =
 
 when isMainModule:
     # testing
-    let testStr = readFile("../example_data/example.csv")
-    var df = testStr.toDataFrame(sep=",")
-    echo df.selectRow(2)
+    let testStr = readFile("../example_data/example_skip.csv")
+    var df = testStr.toDataFrame(sep=",", skipStartRows=2, skipEndRows=1)
+    echo df
     #let
     #    newcol = Column(name: "new_column", data: @["1", "2", "3"])
     #    newcol2 = Column(name: "new_column_2", data: @["a", "b", "c"])
