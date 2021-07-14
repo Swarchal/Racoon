@@ -110,3 +110,4 @@ shape = [2, 4]
 - slicing
 - sorting
 - aggregations / group by
+- sampling rows
