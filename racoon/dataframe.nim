@@ -172,26 +172,6 @@ proc echo*(col: Column) =
     echo "\nshape = " & $len(col.data)
 
 
-when isMainModule:
-    # testing
-    let testStr = readFile("../example_data/example_skip.csv")
-    var df = testStr.toDataFrame(sep=",", skipStartRows=2, skipEndRows=1)
-    echo df
-    #let
-    #    newcol = Column(name: "new_column", data: @["1", "2", "3"])
-    #    newcol2 = Column(name: "new_column_2", data: @["a", "b", "c"])
-    #let df2 = df.addColumn(@[newcol, newcol2])
-
-    #echo df2.selectRow(@[0, 2])
-
-    #let wanted_cols = @["second_name", "favourite_food"]
-    #echo df2[wanted_cols]
-
-    #echo ""
-    #echo df2["favourite_food"][0]
-
-
-    #let df_iris = readFile("../example_data/iris.csv").toDataFrame()
-    #echo "\n"
-    #echo df_iris
-
+proc echo*(row: Row) =
+    for col_name, value in row.pairs:
+        echo col_name, ":\t", $value

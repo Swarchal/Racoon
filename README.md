@@ -81,7 +81,10 @@ echo df.selectRow(2)
 
 output:
 ```
-{"first_name": "Bill", "second_name": "Murray", "age": "59", "favourite_food": "Pizza"}
+first_name:     Bill
+second_name:    Murray
+age:    59
+favourite_food: Pizza
 ```
 
 -----
