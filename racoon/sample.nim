@@ -22,7 +22,7 @@ proc sample_n_with_replacement(df: DataFrame, n: int): DataFrame =
         new_data: seq[Row]
         sample_count = 0
     while sample_count < n:
-        sample_row_idx = random.rand(df.shape[0])
+        sample_row_idx = random.rand(df.shape[0]-1)
         row = df.data[sample_row_idx]
         new_data.add(row)
         sample_count += 1
@@ -39,7 +39,7 @@ proc sample_n_without_replacement(df: DataFrame, n: int): DataFrame =
         )
     # shuffle rows and take the first n
     var df_shuffled = shuffle(df)
-    df_shuffled.data = df_shuffled.data[0..n]
+    df_shuffled.data = df_shuffled.data[0..n-1]
     return df_shuffled
 
 

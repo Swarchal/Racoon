@@ -1,16 +1,15 @@
 import std/[unittest]
-import racoon/[dataframe]
-
+import racoon/[dataframe, sample]
 
 suite "test dataframes":
 
     setup:
         var
             df_bill = readFile("./example_data/example.csv").toDataFrame()
+            df_bill_skipped = readFile("./example_data/example_skip.csv").toDataFrame(skipStartRows=2)
             wanted_cols = @["second_name", "favourite_food"]
             df_select = df_bill[wanted_cols]
             new_col = Column(name: "test", data: @["a", "b", "c"])
-            df_bill_skipped = readFile("./example_data/example_skip.csv").toDataFrame(skipStartRows=2)
 
     test "selecting single column":
         check:
@@ -30,4 +29,16 @@ suite "test dataframes":
         check:
             df_bill.addColumn(new_col)["test"] == new_col
             df_bill.addColumn(new_col).shape == [3, 5]
+
+    test "sampling":
+        var
+            df_bill_sampled_1_row = df_bill.sample(n=1, replace=false)
+            df_bill_sampled_2_row = df_bill.sample(n=2, replace=false)
+            df_bill_sampled_10_row = df_bill.sample(n=10, replace=true)
+            df_bill_sampled_frac_01 = df_bill.sample(frac=0.1, replace=false)
+        check:
+            df_bill_sampled_1_row.shape[0] == 1
+            df_bill_sampled_2_row.shape[0] == 2
+            df_bill_sampled_10_row.shape[0] == 10
+            df_bill_sampled_frac_01.shape[0] == 1
 
