@@ -50,13 +50,13 @@ func toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRo
 func toDataFrame(cols: seq[Column]): DataFrame =
     # sequence of columns to dataframe
     let
-        colnames = collect(newSeq): (for i in cols: i.name)
+        colnames = sugar.collect(newSeq): (for i in cols: i.name)
         n_rows = cols[0].data.high
     var
         row: seq[string]
         row_collection: seq[Row]
     for row_idx in 0..n_rows:
-        row = collect(newSeq): (for i in cols: i.data[row_idx])
+        row = sugar.collect(newSeq): (for i in cols: i.data[row_idx])
         var row_t: OrderedTable[string, string]
         for i, (name, val) in zip(colnames, row):
             row_t[name] = val

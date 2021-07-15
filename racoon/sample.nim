@@ -9,7 +9,7 @@ func frac_to_n(df: DataFrame, frac: float): int =
 proc shuffle*(df: DataFrame): DataFrame =
     # shuffle rows of dataframe
     var df_copy: DataFrame
-    deepCopy(df_copy, df)
+    system.deepCopy(df_copy, df)
     random.shuffle(df_copy.data)
     return df_copy
 
