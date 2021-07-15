@@ -1,41 +1,61 @@
-import std/[math, strformat]
+import std/[math, random]
 import dataframe
 
 
-func frac_to_n(df: DataFrame, frac:float): int =
+func frac_to_n(df: DataFrame, frac: float): int =
     return math.ceil(df.shape[0].float * frac).int
 
 
-func sample_n_with_replacement(df: DataFrame, n:int): DataFrame =
-    # TODO
-    return DataFrame()
+proc shuffle*(df: DataFrame): DataFrame =
+    # shuffle rows of dataframe
+    var df_copy: DataFrame
+    deepCopy(df_copy, df)
+    random.shuffle(df_copy.data)
+    return df_copy
 
 
-func sample_n_without_replacement(df: DataFrame, n:int): DataFrame =
+proc sample_n_with_replacement(df: DataFrame, n: int): DataFrame =
+    var
+        df_copy = df
+        sample_row_idx: int
+        row: Row
+        new_data: seq[Row]
+        sample_count = 0
+    while sample_count < n:
+        sample_row_idx = random.rand(df.shape[0])
+        row = df.data[sample_row_idx]
+        new_data.add(row)
+        sample_count += 1
+    df_copy.data = new_data
+    return df_copy
+
+
+proc sample_n_without_replacement(df: DataFrame, n: int): DataFrame =
     let n_rows = df.shape[0]
     if n > n_rows:
         raise newException(
             ValueError,
-            fmt"can't sample {n} times without replacement with only {n_rows} rows"
+            "without replacement, can't sample more rows than in the dataframe"
         )
-    # TODO
-    return DataFrame()
+    # shuffle rows and take the first n
+    var df_shuffled = shuffle(df)
+    df_shuffled.data = df_shuffled.data[0..n]
+    return df_shuffled
 
 
-
-func sample_frac_with_replacement(df: DataFrame, frac:float): DataFrame =
+proc sample_frac_with_replacement(df: DataFrame, frac: float): DataFrame =
     # calculate how many n for frac of rows
     let n = frac_to_n(df, frac)
     return sample_n_with_replacement(df, n)
 
 
-func sample_frac_without_replacement(df: DataFrame, frac: float): DataFrame =
+proc sample_frac_without_replacement(df: DataFrame, frac: float): DataFrame =
     # calculate how many n for frac of rows
     let n = frac_to_n(df, frac)
     return sample_n_without_replacement(df, n)
 
 
-func sample*(df: DataFrame, n=0, frac=0.0, replace=false): DataFrame =
+proc sample*(df: DataFrame, n=0, frac=0.0, replace=false): DataFrame =
     var df_sampled: DataFrame
     if n != 0 and frac != 0.0:
         raise newException(
