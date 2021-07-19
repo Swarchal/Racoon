@@ -1,5 +1,6 @@
 import std/unittest
-import racoon/[dataframe, sample]
+
+import racoon
 
 
 suite "test dataframes":

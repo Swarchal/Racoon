@@ -25,7 +25,7 @@ A bit like [pandas](https://pandas.pydata.org/), but worse in almost every way.
 
 input:
 ```nim
-import racoon/[dataframe]
+import racoon
 
 var df = readFile("example.csv").toDataFrame()
 echo df
