@@ -1,4 +1,4 @@
-import std/[unittest]
+import std/unittest
 import racoon/[dataframe, sample]
 
 
@@ -31,8 +31,15 @@ suite "test dataframes":
             df_bill.addColumn(new_col)["test"] == new_col
             df_bill.addColumn(new_col).shape == [3, 5]
 
+    test "concatenating":
+        let df_bill_copy = df_bill
+        check:
+            df_bill.concat(df_bill_copy).shape[0] == df_bill.shape[0]*2
+            concat(@[df_bill, df_bill_copy]).shape[0] == df_bill.shape[0]*2
+            concat(@[df_bill, df_bill_copy]).shape[1] == df_bill.shape[1]
 
-suite "test sampling":
+
+suite "sampling":
 
     setup:
         let
