@@ -1,9 +1,8 @@
 import std/[sequtils, strformat]
 import ./dataframe
 
-func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
-    # concatenate two dataframes
-    # check columns are the length
+
+func check_columns(df_a: DataFrame, df_b: DataFrame) =
     if df_a.header.len() != df_b.header.len():
         raise newException(
             ValueError, "dataframes have differing number of columns"
@@ -15,6 +14,12 @@ func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
             raise newException(
                 ValueError, fmt"column {df_a_colname} not in both dataframes"
             )
+
+
+func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
+    # concatenate two dataframes
+    # check columns are the length
+    check_columns(df_a, df_b)
     let df_concat = DataFrame(
         header: df_a.header,
         data: sequtils.concat(df_a.data, df_b.data)
