@@ -18,6 +18,7 @@ A bit like [pandas](https://pandas.pydata.org/), but worse in almost every way.
 - ~~sampling rows~~
 - ~~shuffling rows~~
 - ~~concatenating rows~~
+- ~~pretty echo~~
 
 --------
 
@@ -32,10 +33,13 @@ echo df
 ```
 output:
 ```
-first_name | second_name | age | favourite_food
-Bill       | Gates       | 60  | Burgers
-Bill       | Clinton     | 71  | Salad
-Bill       | Murray      | 59  | Pizza
+---------------------------------------------------
+| first_name | second_name | age | favourite_food |
+---------------------------------------------------
+|       Bill |       Gates |  60 |        Burgers |
+|       Bill |     Clinton |  71 |          Salad |
+|       Bill |      Murray |  59 |          Pizza |
+---------------------------------------------------
 shape = [3, 4]
 ```
 
@@ -48,11 +52,13 @@ echo df["second_name"]
 
 output:
 ```
-second_name
------------
-Gates
-Clinton
-Murray
+---------------
+| second_name |
+---------------
+|       Gates |
+|     Clinton |
+|      Murray |
+---------------
 shape = 3
 ```
 
@@ -66,10 +72,13 @@ echo df[wanted_cols]
 
 output:
 ```
-second_name | favourite_food
-Gates       | Burgers
-Clinton     | Salad
-Murray      | Pizza
+--------------------------------
+| second_name | favourite_food |
+--------------------------------
+|       Gates |        Burgers |
+|     Clinton |          Salad |
+|      Murray |          Pizza |
+--------------------------------
 shape = [3, 2]
 ```
 
@@ -110,9 +119,12 @@ echo df.selectRow(@[0, 2])
 
 output:
 ```
-first_name | second_name | age | favourite_food
-Bill       | Gates       | 60  | Burgers
-Bill       | Murray      | 59  | Pizza
+---------------------------------------------------
+| first_name | second_name | age | favourite_food |
+---------------------------------------------------
+|       Bill |       Gates |  60 |        Burgers |
+|       Bill |      Murray |  59 |          Pizza |
+---------------------------------------------------
 shape = [2, 4]
 ```
 
@@ -120,16 +132,18 @@ shape = [2, 4]
 
 input:
 ```nim
-import racoon/[sample]
-
 echo df[@["first_name", "second_name"]].sample(n=2)
 ```
 
 output:
 ```
-first_name | second_name
-Bill       | Murray     
-Bill       | Gates      
+----------------------------
+| first_name | second_name |
+----------------------------
+|       Bill |       Gates |
+|       Bill |      Murray |
+----------------------------
+shape = [2, 2]
 ```
 
 -----
