@@ -21,6 +21,17 @@ func longestString(col: Column): int =
     return min(max_len, limit)
 
 
+func longestString(row: Row): int =
+    var
+        max_len = 0
+        current: int
+    for k in row.keys:
+        current = len(k)
+        if current > max_len:
+            max_len = current
+    return max_len
+
+
 func longestString(df: DataFrame): Table[string, int] =
     # Get the longest string in each column of the DataFrame df.
     # Return this has a table with column names as keys, and longest length as
@@ -43,25 +54,39 @@ func getTotalWidth(counts: Table[string, int]): int =
     return total
 
 
+func makeSepLine(df: DataFrame, counts: Table[string, int]): string =
+    # create separator line
+    # i.e +-------+
+    # with '+' at vertices separated by '-'
+    let totalWidth = counts.getTotalWidth
+    var
+        padding: int
+        charIndex = 0
+        sepLine = repeat("-", totalWidth)
+    sepLine[0] = '+'
+    for colName in df.header:
+        padding = counts[colName]
+        charIndex += (padding + 3)
+        sepLine[charIndex] = '+'
+    return sepLine
+
+
 proc echo*(df: DataFrame) =
-    # TODO: get longest string for each column, pad columns
-    # need to print row by row
-    # but have custom padding for each column
-    # this is going to be wild
     let
         counts = df.longestString
         totalWidth = counts.getTotalWidth
+        sepLine = makeSepLine(df, counts)
     var
         headerLine: string
         rowLine: string
-    echo repeat("-", totalWidth)
+    echo sepLine
     # header line
     headerLine = "|"
     for colName in df.header:
         var padding = counts[colName]
         headerLine = headerLine & fmt" {align(colName, padding)} |"
     echo headerLine
-    echo repeat("-", totalWidth)
+    echo sepLine
     # iterate through rows
     for row in df.data:
         rowLine = "|"
@@ -70,18 +95,26 @@ proc echo*(df: DataFrame) =
             var padding = counts[colName]
             rowLine = rowLine & fmt" {align(val, padding)} |"
         echo rowLine
-    echo repeat("-", totalWidth)
+    echo sepLine
     echo fmt"shape = {df.shape}"
 
 
-
 proc echo*(col: Column) =
-    let pad_length = col.longestString
+    let
+        pad_length = col.longestString
+        sepLine = "+" & repeat("-", pad_length+2) & "+"
     # 4 because 2*| and 2*(space)
-    echo repeat("-", pad_length+4)
+    echo sepLine
     echo fmt"| {align(col.name, pad_length)} |"
-    echo repeat("-", pad_length+4)
+    echo sepLine
     for i in col.data:
         echo fmt"| {align(i, pad_length)} |"
-    echo repeat("-", pad_length+4)
+    echo sepLine
     echo "shape = " & $len(col.data)
+
+
+proc echo*(row: Row) =
+    let padding = row.longestString
+    for k, v in row.pairs:
+        echo fmt"{alignLeft(k, padding)} : {v}"
+
