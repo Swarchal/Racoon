@@ -39,6 +39,15 @@ suite "test dataframes":
             concat(@[df_bill, df_bill_copy]).shape[0] == df_bill.shape[0]*2
             concat(@[df_bill, df_bill_copy]).shape[1] == df_bill.shape[1]
 
+    test "concatenating different column order":
+        let
+            df_bill_a = df_bill[@["first_name", "second_name"]]
+            df_bill_b = df_bill[@["second_name", "first_name"]]
+            df_bill_concat = df_bill_a.concat(df_bill_b)
+        check:
+            df_bill_concat.header == @["first_name", "second_name"]
+
+
 
 suite "sampling":
 
@@ -46,7 +55,7 @@ suite "sampling":
         let
             iris = readFile("./example_data/iris.csv").toDataFrame()
             bills = readFile("./example_data/example.csv").toDataFrame()
-    
+
     test "sample n without replacement":
         let iris_n_10 = iris.sample(n=10, replace=false)
         check:
@@ -73,7 +82,7 @@ suite "sampling":
             # 150 rows in full dataset, so should have about 50 rows
             iris_frac_033.shape[0] < 55
             iris_frac_033.shape[0] > 45
-    
+
     test "shuffle rows":
         let
             iris_shuffle = iris.shuffle()

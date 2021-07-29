@@ -16,13 +16,21 @@ func check_columns(df_a: DataFrame, df_b: DataFrame) =
             )
 
 
+func column_order_as(df_change: DataFrame, df_reference: DataFrame): DataFrame =
+    # df_to_change.column_order_as(df_refernce)
+    # will return a copy of `df_to_change` with the columns in the same order
+    # as `df_reference`
+    return df_change[df_reference.header]
+
+
 func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
     # concatenate two dataframes
     # check columns are the length
-    check_columns(df_a, df_b)
+    #check_columns(df_a, df_b)
+    let df_a_reordered = df_a.column_order_as(df_b)
     let df_concat = DataFrame(
         header: df_a.header,
-        data: sequtils.concat(df_a.data, df_b.data)
+        data: sequtils.concat(df_a_reordered.data, df_b.data)
     )
     return df_concat
 
