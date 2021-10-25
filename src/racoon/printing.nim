@@ -1,4 +1,4 @@
-import std/[strutils, strformat, tables]
+import std/[strutils, strformat, tables, sequtils]
 
 import dataframe
 

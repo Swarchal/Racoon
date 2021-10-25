@@ -158,3 +158,13 @@ func toString*(df: DataFrame, sep=",", linesep="\n"): string =
     return output
 
 
+func head*(df: DataFrame, n=10): DataFrame =
+    var n_rows = min(n, df.shape[0])
+    return df.selectRow(toSeq(0..n_rows-1))
+
+
+func tail*(df: DataFrame, n=10): DataFrame =
+    let total_rows = df.shape[0]
+    var n_rows = min(n, total_rows)
+    return df.selectRow(toSeq(total_rows-n_rows..total_rows-1))
+
