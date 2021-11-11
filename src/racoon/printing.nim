@@ -1,6 +1,7 @@
 import std/[strutils, strformat, tables]
 
 import dataframe
+import concat
 
 
 func longestString(col: Column): int =
@@ -79,6 +80,8 @@ proc echo*(df: DataFrame) =
     var
         headerLine: string
         rowLine: string
+        val: string
+        padding: int
     echo sepLine
     # header line
     headerLine = "|"
@@ -88,13 +91,32 @@ proc echo*(df: DataFrame) =
     echo headerLine
     echo sepLine
     # iterate through rows
-    for row in df.data:
-        rowLine = "|"
-        for colName in df.header:
-            var val = row[colName]
-            var padding = counts[colName]
-            rowLine = rowLine & fmt" {align(val, padding)} |"
-        echo rowLine
+    # if dataframe is less than 50 rows then print entire dataframe
+    if df.shape[0] <= 50:
+        for row in df.data:
+            rowLine = "|"
+            for colName in df.header:
+                val = row[colName]
+                padding = counts[colName]
+                rowLine = rowLine & fmt" {align(val, padding)} |"
+            echo rowLine
+    else:
+        # if dataframe is more than 50 rows, then truncate to first and last 10
+        # rows
+        let df_short = concat(df.head(), df.tail())
+        var count = 0
+        for row in df_short.data:
+            count += 1
+            rowLine = "|"
+            for colName in df.header:
+                if count == 10:
+                    val = "..."
+                    padding = counts[colName]
+                else:
+                    val = row[colName]
+                    padding = counts[colName]
+                rowLine = rowLine & fmt" {align(val, padding)} |"
+            echo rowLine
     echo sepLine
     echo fmt"shape = {df.shape}"
 
