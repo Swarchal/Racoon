@@ -92,3 +92,8 @@ suite "sampling":
             iris_shuffle.header == iris.header
             bills_shuffle.shape == bills.shape
             bills_shuffle.header == bills.header
+
+    test "shuffle rows doesn't alter original data":
+        let iris_shuffle = iris.shuffle()
+        check:
+          iris.data != iris_shuffle.data

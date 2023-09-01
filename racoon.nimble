@@ -3,6 +3,6 @@ author = "Scott Warchal"
 description = "Simple dataframes"
 license = "MIT"
 srcDir = "src"
-skipDirs = @["tests"]
+#skipDirs = @["tests"]
 
 requires "nim >= 1.0.0"
