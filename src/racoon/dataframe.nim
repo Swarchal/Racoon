@@ -50,7 +50,12 @@ func toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRo
     var columns: seq[Column]
     for name in header:
         columns.add(Column(name: name, data: newSeq[string]()))
-    for lineIdx in (skipStartRows+1)..lines.high:
+    # ignore trailing empty lines, then drop the last skipEndRows data lines
+    var lastLine = lines.high
+    while lastLine >= 0 and lines[lastLine].len == 0:
+        lastLine -= 1
+    lastLine -= skipEndRows
+    for lineIdx in (skipStartRows+1)..lastLine:
         let line = lines[lineIdx]
         if len(line) > 0:
             let fields = line.split(sep)

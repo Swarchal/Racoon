@@ -77,6 +77,13 @@ suite "test dataframes":
         expect(ValueError):
             discard "a,b\n1,2,3".toDataFrame()
 
+    test "skip end rows":
+        # the junk trailer row would otherwise fail field-count validation
+        let df_skip_end = "a,b\n1,2\n3,4\njunk".toDataFrame(skipEndRows=1)
+        check:
+            df_skip_end.shape == [2, 2]
+            df_skip_end["a"].data == @["1", "3"]
+
     test "empty dataframe shape":
         check:
             DataFrame().shape == [0, 0]
@@ -111,7 +118,7 @@ suite "sampling":
             iris_frac_033.shape[0] > 45
 
     test "sample frac with replacement":
-        let iris_frac_033 = iris.sample(frac=0.33, replace=false)
+        let iris_frac_033 = iris.sample(frac=0.33, replace=true)
         check:
             # 150 rows in full dataset, so should have about 50 rows
             iris_frac_033.shape[0] < 55

@@ -102,19 +102,21 @@ proc echo*(df: DataFrame) =
         # rows
         let df_short = concat(df.head(), df.tail())
         let nrows_short = df_short.shape[0]
-        var count = 0
         for i in 0..<nrows_short:
-            count += 1
             rowLine = "|"
             for col in df_short.columns:
-                if count == 10:
-                    val = "..."
-                    padding = counts[col.name]
-                else:
-                    val = col.data[i]
-                    padding = counts[col.name]
+                val = col.data[i]
+                padding = counts[col.name]
                 rowLine = rowLine & fmt" {align(val, padding)} |"
             echo rowLine
+            # print ellipsis row after the first 10 rows
+            if i == 9:
+                rowLine = "|"
+                for col in df_short.columns:
+                    val = "..."
+                    padding = counts[col.name]
+                    rowLine = rowLine & fmt" {align(val, padding)} |"
+                echo rowLine
     echo sepLine
     echo fmt"shape = {df.shape}"
 

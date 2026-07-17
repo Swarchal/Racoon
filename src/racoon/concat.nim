@@ -7,12 +7,11 @@ func check_columns(df_a: DataFrame, df_b: DataFrame) =
         raise newException(
             ValueError, "dataframes have differing number of columns"
         )
-    # check columns are shared between the two dataframes
-    # currently the columns need to be in the same order
-    for index, df_a_colname in df_a.header.pairs():
-        if df_a_colname != df_b.header[index]:
+    # check all columns in df_a exist in df_b (order-independent)
+    for colname in df_a.header:
+        if colname notin df_b.header:
             raise newException(
-                ValueError, fmt"column {df_a_colname} not in both dataframes"
+                ValueError, fmt"column {colname} not in both dataframes"
             )
 
 
@@ -25,8 +24,8 @@ func column_order_as(df_change: DataFrame, df_reference: DataFrame): DataFrame =
 
 func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
     # concatenate two dataframes
-    # check columns are the length
-    #check_columns(df_a, df_b)
+    # check that columns match between dataframes
+    check_columns(df_a, df_b)
     let df_b_reordered = df_b.column_order_as(df_a)
     var columns: seq[Column]
     for i in 0..<df_a.columns.len:
