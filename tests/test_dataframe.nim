@@ -1,4 +1,4 @@
-import std/unittest
+import std/[unittest, strutils]
 
 import racoon
 
@@ -46,6 +46,40 @@ suite "test dataframes":
             df_bill_concat = df_bill_a.concat(df_bill_b)
         check:
             df_bill_concat.header == @["first_name", "second_name"]
+
+    test "toString round-trip":
+        let
+            csv_str = df_bill.toString()
+            df_restored = csv_str.toDataFrame()
+        check:
+            df_restored == df_bill
+
+    test "concat alignment regression - toString preserves header order":
+        let
+            df_bill_a = df_bill[@["first_name", "second_name"]]
+            df_bill_b = df_bill[@["second_name", "first_name"]]
+            df_bill_concat = df_bill_a.concat(df_bill_b)
+            csv_output = df_bill_concat.toString()
+            lines = csv_output.split("\n")
+            first_data_line = lines[1].split(",")
+        check:
+            # header should be in first_name, second_name order
+            lines[0] == "first_name,second_name"
+            # first data row should have Bill,Gates (from first subset)
+            first_data_line[0] == "Bill"
+            first_data_line[1] == "Gates"
+
+    test "parse validation - duplicate column names":
+        expect(ValueError):
+            discard "a,a\n1,2".toDataFrame()
+
+    test "parse validation - mismatched field count":
+        expect(ValueError):
+            discard "a,b\n1,2,3".toDataFrame()
+
+    test "empty dataframe shape":
+        check:
+            DataFrame().shape == [0, 0]
 
 
 
@@ -96,4 +130,4 @@ suite "sampling":
     test "shuffle rows doesn't alter original data":
         let iris_shuffle = iris.shuffle()
         check:
-          iris.data != iris_shuffle.data
+          iris.columns != iris_shuffle.columns

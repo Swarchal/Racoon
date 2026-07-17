@@ -34,15 +34,11 @@ func longestString(row: Row): int =
 
 
 func longestString(df: DataFrame): Table[string, int] =
-    # Get the longest string in each column of the DataFrame df.
-    # Return this has a table with column names as keys, and longest length as
-    # values.
-    var
-        counter = initTable[string, int]()
-        column: Column
-    for col_name in df.header:
-        column = df[col_name]
-        counter[col_name] = column.longestString
+    # get the longest string in each column of the dataframe df.
+    # return this as a table with column names as keys, and longest length as values.
+    var counter = initTable[string, int]()
+    for col in df.columns:
+        counter[col.name] = col.longestString
     return counter
 
 
@@ -92,29 +88,31 @@ proc echo*(df: DataFrame) =
     echo sepLine
     # iterate through rows
     # if dataframe is less than 50 rows then print entire dataframe
-    if df.shape[0] <= 50:
-        for row in df.data:
+    let nrows = df.shape[0]
+    if nrows <= 50:
+        for i in 0..<nrows:
             rowLine = "|"
-            for colName in df.header:
-                val = row[colName]
-                padding = counts[colName]
+            for col in df.columns:
+                val = col.data[i]
+                padding = counts[col.name]
                 rowLine = rowLine & fmt" {align(val, padding)} |"
             echo rowLine
     else:
         # if dataframe is more than 50 rows, then truncate to first and last 10
         # rows
         let df_short = concat(df.head(), df.tail())
+        let nrows_short = df_short.shape[0]
         var count = 0
-        for row in df_short.data:
+        for i in 0..<nrows_short:
             count += 1
             rowLine = "|"
-            for colName in df.header:
+            for col in df_short.columns:
                 if count == 10:
                     val = "..."
-                    padding = counts[colName]
+                    padding = counts[col.name]
                 else:
-                    val = row[colName]
-                    padding = counts[colName]
+                    val = col.data[i]
+                    padding = counts[col.name]
                 rowLine = rowLine & fmt" {align(val, padding)} |"
             echo rowLine
     echo sepLine

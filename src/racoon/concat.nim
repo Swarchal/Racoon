@@ -27,12 +27,13 @@ func concat*(df_a: DataFrame, df_b: DataFrame): DataFrame =
     # concatenate two dataframes
     # check columns are the length
     #check_columns(df_a, df_b)
-    let df_a_reordered = df_a.column_order_as(df_b)
-    let df_concat = DataFrame(
-        header: df_a.header,
-        data: sequtils.concat(df_a_reordered.data, df_b.data)
-    )
-    return df_concat
+    let df_b_reordered = df_b.column_order_as(df_a)
+    var columns: seq[Column]
+    for i in 0..<df_a.columns.len:
+        let col_a = df_a.columns[i]
+        let col_b = df_b_reordered.columns[i]
+        columns.add(Column(name: col_a.name, data: col_a.data & col_b.data))
+    return toDataFrame(columns)
 
 
 func concat*(collection: seq[DataFrame]): DataFrame =

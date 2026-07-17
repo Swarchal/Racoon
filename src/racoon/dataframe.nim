@@ -3,11 +3,12 @@
 ]#
 
 
-import std/[sequtils, sugar, strutils, strformat, tables]
+import std/[strutils, strformat, tables]
 
 
 type
     Row* = OrderedTable[string, string]
+        # on-demand view of a single row, built from the underlying columns
 
     Header* = seq[string]
 
@@ -16,103 +17,113 @@ type
         data*: seq[string]
 
     DataFrame* = object
-        header*: Header
-        data*: seq[Row]
+        columns*: seq[Column]
 
+
+
+func header*(df: DataFrame): seq[string] =
+    # return column names, in column order
+    result = newSeq[string](df.columns.len)
+    for i, col in df.columns:
+        result[i] = col.name
 
 
 func shape*(df: DataFrame): array[2, int] =
     # return dataframe shape [n_rows, n_cols]
-    return [len(df.data), len(df.header)]
+    if df.columns.len == 0:
+        return [0, 0]
+    return [df.columns[0].data.len, df.columns.len]
 
 
 func toDataFrame*(csv: string, sep=",", linesep="\n", skipStartRows=0, skipEndRows=0): DataFrame =
-    # parse delimited string to DataFrame object
+    # parse delimited string directly into columns
     # TODO: schema
     #       Table/Tuple
-    var
-        header = csv.split(linesep)[skipStartRows].split(sep)
-        rows = csv.split(linesep)
-        data: seq[Row]
-    for row in rows[skipStartRows+1..rows.high]:
-        if len(row) > 0:
-            var zipped = zip(header, row.split(sep))
-            var row_t: OrderedTable[string, string]
-            for index, (name, value) in zipped:
-                row_t[name] = value
-            data.add(row_t)
-    return DataFrame(
-        header: header,
-        data: data,
-    )
+    var lines = csv.split(linesep)
+    var header = lines[skipStartRows].split(sep)
+    # guard against duplicate column names
+    var seen: seq[string]
+    for name in header:
+        if name in seen:
+            raise newException(ValueError, fmt"duplicate column name: {name}")
+        seen.add(name)
+    var columns: seq[Column]
+    for name in header:
+        columns.add(Column(name: name, data: newSeq[string]()))
+    for lineIdx in (skipStartRows+1)..lines.high:
+        let line = lines[lineIdx]
+        if len(line) > 0:
+            let fields = line.split(sep)
+            if fields.len != header.len:
+                raise newException(
+                    ValueError,
+                    fmt"line {lineIdx+1}: expected {header.len} fields, got {fields.len}"
+                )
+            for colIdx in 0..header.high:
+                columns[colIdx].data.add(fields[colIdx])
+    return DataFrame(columns: columns)
 
 
-func toDataFrame(cols: seq[Column]): DataFrame =
+func toDataFrame*(cols: seq[Column]): DataFrame =
     # sequence of columns to dataframe
-    let
-        colnames = sugar.collect(newSeq): (for i in cols: i.name)
-        n_rows = cols[0].data.high
-    var
-        row: seq[string]
-        row_collection: seq[Row]
-    for row_idx in 0..n_rows:
-        row = sugar.collect(newSeq): (for i in cols: i.data[row_idx])
-        var row_t: OrderedTable[string, string]
-        for i, (name, val) in zip(colnames, row):
-            row_t[name] = val
-        row_collection.add(row_t)
-    return DataFrame(
-        header: colnames,
-        data: row_collection
-    )
+    if cols.len > 0:
+        let n_rows = cols[0].data.len
+        for col in cols:
+            assert col.data.len == n_rows
+    return DataFrame(columns: cols)
 
 
 func addColumn*(df: DataFrame, col: Column): DataFrame =
-    # add value to all rowTables
-    assert df.shape[0] == len(col.data)
+    # append a single column to the dataframe
+    assert col.data.len == df.shape[0]
     var df_copy = df
-    for i in 0..df_copy.data.high:
-        df_copy.data[i][col.name] = col.data[i]
-    df_copy.header.add(col.name)
+    df_copy.columns.add(col)
     return df_copy
 
 
 func addColumn*(df: DataFrame, cols: seq[Column]): DataFrame =
     # add seq of columns to a dataframe
-    # TODO: really inefficient, stop copying so much
     var df_copy = df
     for col in cols:
-        df_copy = df_copy.addColumn(col)
+        assert col.data.len == df_copy.shape[0]
+        df_copy.columns.add(col)
     return df_copy
 
 
 func addRow*(df: DataFrame, row: Row): DataFrame =
-    # append new Row to df.data seq
+    # append new Row to each column
     # returns a new DataFrame
     var df_copy = df
-    df_copy.data.add(row)
+    for col in df_copy.columns.mitems:
+        col.data.add(row[col.name])
     return df_copy
 
 
 func selectRow*(df: DataFrame, rowindex: int): Row =
-    # select single row by index
-    return df.data[rowindex]
+    # select single row by index, built on-demand from columns
+    var row_t: Row
+    for col in df.columns:
+        row_t[col.name] = col.data[rowindex]
+    return row_t
 
 
 func selectRow*(df: DataFrame, rowindices: seq[int]): DataFrame =
     # select multiple rows using a seq of indices
-    var row_collection: seq[Row]
-    for idx in rowindices:
-        row_collection.add(df.data[idx])
-    return DataFrame(header: df.header, data: row_collection)
+    var columns: seq[Column]
+    for col in df.columns:
+        var vals: seq[string]
+        for idx in rowindices:
+            vals.add(col.data[idx])
+        columns.add(Column(name: col.name, data: vals))
+    return DataFrame(columns: columns)
 
 
 func selectColumn*(df: DataFrame, colname: string): Column =
     # select single column from DataFrame
-    var vals: seq[string]
-    for row in df.data:
-        vals.add(row[colname])
-    return Column(name: colname, data: vals)
+    for col in df.columns:
+        if col.name == colname:
+            return col
+    raise newException(KeyError, fmt"column not found: {colname}")
 
 
 func `[]`*(df: DataFrame, colname: string): Column =
@@ -143,28 +154,40 @@ func `[]`*(col: Column, indices: seq[int]): Column =
 
 func toString*(df: DataFrame, sep=",", linesep="\n"): string =
     # convert DataFrame to delimited string
-    var
-        output: string
-        rows: seq[string]
+    var rows: seq[string]
     # add header as first row
     rows.add(df.header.join(sep))
-    # populate rest of rows
-    for row_t in df.data:
+    # populate rest of rows, column order == header order by construction
+    let n_rows = df.shape[0]
+    for rowIdx in 0..<n_rows:
         var row: seq[string] = @[]
-        for field in row_t.values:
-            row.add(field)
+        for col in df.columns:
+            row.add(col.data[rowIdx])
         rows.add(row.join(sep))
-    output = rows.join(linesep)
-    return output
+    return rows.join(linesep)
 
 
 func head*(df: DataFrame, n=10): DataFrame =
-    var n_rows = min(n, df.shape[0])
-    return df.selectRow(toSeq(0..n_rows-1))
+    # first n rows of the dataframe
+    let total_rows = df.shape[0]
+    let n_rows = min(n, total_rows)
+    var columns: seq[Column]
+    for col in df.columns:
+        columns.add(Column(name: col.name, data: col.data[0..<n_rows]))
+    return DataFrame(columns: columns)
 
 
 func tail*(df: DataFrame, n=10): DataFrame =
+    # last n rows of the dataframe
     let total_rows = df.shape[0]
-    var n_rows = min(n, total_rows)
-    return df.selectRow(toSeq(total_rows-n_rows..total_rows-1))
+    let n_rows = min(n, total_rows)
+    var columns: seq[Column]
+    for col in df.columns:
+        columns.add(Column(name: col.name, data: col.data[total_rows-n_rows..<total_rows]))
+    return DataFrame(columns: columns)
 
+
+iterator rows*(df: DataFrame): Row =
+    # yield an on-demand Row view for every index in the dataframe
+    for i in 0..<df.shape[0]:
+        yield df.selectRow(i)
